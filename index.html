@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Photo to PDF Converter</title>
+  <title>Image Resizer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -32,15 +32,15 @@
   </style>
 </head>
 <body>
-  <h1>Photo to PDF Converter</h1>
+  <h1>Image Resizer</h1>
   <div class="container">
     <input type="file" id="photoInput" accept="image/*" required>
-    <button onclick="convertToPdf()" class="btn">Convert to PDF</button>
+    <button onclick="resizeImage()" class="btn">Resize Image</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
   <script>
-    function convertToPdf() {
+    function resizeImage() {
       var photoInput = document.getElementById('photoInput');
       var file = photoInput.files[0];
 
@@ -50,10 +50,42 @@
 
       var reader = new FileReader();
       reader.onload = function(e) {
-        var imgData = e.target.result;
-        var pdf = new jsPDF();
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-        pdf.save('converted.pdf');
+        var img = new Image();
+        img.src = e.target.result;
+        
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          
+          var maxWidth = 800; // Maximum width for the resized image
+          var maxHeight = 800; // Maximum height for the resized image
+          var width = img.width;
+          var height = img.height;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          var resizedImgUrl = canvas.toDataURL('image/jpeg');
+          
+          var a = document.createElement('a');
+          a.href = resizedImgUrl;
+          a.download = 'resized_image.jpg';
+          a.click();
+        };
       };
       reader.readAsDataURL(file);
     }
